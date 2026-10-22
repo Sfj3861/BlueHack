@@ -30,6 +30,8 @@ namespace {
     }
 
     void applySpeedhack(bool enabled) {
+        // Only alter the game clock while an actual level is active; never slow the menus.
+        if (!PlayLayer::get()) return;
         if (auto* director = CCDirector::sharedDirector()) {
             if (auto* scheduler = director->getScheduler()) {
                 scheduler->setTimeScale(enabled ? kSpeedhackScale : 1.f);
@@ -42,7 +44,7 @@ class BlueHackOverlay final : public CCLayerColor {
 public:
     static BlueHackOverlay* create() {
         auto* ret = new BlueHackOverlay();
-        if (ret && ret->initWithColor({ 9, 14, 28, 238 })) {
+        if (ret && ret->initWithColor({ 9, 14, 28, 238 }) && ret->init()) {
             ret->autorelease();
             return ret;
         }
@@ -93,10 +95,6 @@ public:
     }
 
     void onClose(CCObject*) {
-        if (Mod::get()->getSettingValue<bool>("speedhack-enabled")) {
-            Mod::get()->setSettingValue<bool>("speedhack-enabled", false);
-            applySpeedhack(false);
-        }
         if (this->getParent()) this->removeFromParentAndCleanup(true);
         if (g_overlay == this) g_overlay = nullptr;
     }
