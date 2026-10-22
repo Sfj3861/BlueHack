@@ -16,17 +16,19 @@ namespace {
         return mod && mod->isEnabled();
     }
 
-    void setFrameGuardSetting(char const* key, bool value) {
+    bool toggleFrameGuardSetting(char const* key) {
         if (auto* mod = Loader::get()->getLoadedMod("sfj3861.frame-guard"); mod && mod->isEnabled()) {
+            bool value = !mod->getSettingValue<bool>(key);
             mod->setSettingValue<bool>(key, value);
             log::info("BlueHack: Frame-Guard setting '{}' set to {}", key, value);
-        } else {
-            FLAlertLayer::create(
-                "Frame-Guard not found",
-                "Install and enable the compatible Frame-Guard version to control this feature from BlueHack.",
-                "OK"
-            )->show();
+            return value;
         }
+        FLAlertLayer::create(
+            "Frame-Guard not found",
+            "Install and enable a compatible Frame-Guard version to control this feature from BlueHack.",
+            "OK"
+        )->show();
+        return false;
     }
 
     void applySpeedhack(bool enabled) {
@@ -113,23 +115,20 @@ public:
     }
 
     void onHitboxes(CCObject*) {
-        bool enabled = !Mod::get()->getSettingValue<bool>("hitboxes-enabled");
+        bool enabled = toggleFrameGuardSetting("show-hitboxes");
         Mod::get()->setSettingValue<bool>("hitboxes-enabled", enabled);
-        setFrameGuardSetting("show-hitboxes", enabled);
         notifyToggle("Hitboxes", enabled);
     }
 
     void onTrajectory(CCObject*) {
-        bool enabled = !Mod::get()->getSettingValue<bool>("trajectory-enabled");
+        bool enabled = toggleFrameGuardSetting("show-trajectory");
         Mod::get()->setSettingValue<bool>("trajectory-enabled", enabled);
-        setFrameGuardSetting("show-trajectory", enabled);
         notifyToggle("Trajectory", enabled);
     }
 
     void onPlayerBounds(CCObject*) {
-        bool enabled = !Mod::get()->getSettingValue<bool>("player-bounds-enabled");
+        bool enabled = toggleFrameGuardSetting("show-player-bounds");
         Mod::get()->setSettingValue<bool>("player-bounds-enabled", enabled);
-        setFrameGuardSetting("show-player-bounds", enabled);
         notifyToggle("Player bounds", enabled);
     }
 
@@ -232,5 +231,17 @@ $on_mod(Loaded) {
     KeybindSettingPressedEventV3(Mod::get(), "toggle-noclip").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         Mod::get()->setSettingValue<bool>("noclip-enabled", !Mod::get()->getSettingValue<bool>("noclip-enabled"));
+    });
+    KeybindSettingPressedEventV3(Mod::get(), "toggle-trajectory").listen([](Keybind const&, bool down, bool repeat, double) {
+        if (!down || repeat) return;
+        Mod::get()->setSettingValue<bool>("trajectory-enabled", toggleFrameGuardSetting("show-trajectory"));
+    });
+    KeybindSettingPressedEventV3(Mod::get(), "toggle-hitboxes").listen([](Keybind const&, bool down, bool repeat, double) {
+        if (!down || repeat) return;
+        Mod::get()->setSettingValue<bool>("hitboxes-enabled", toggleFrameGuardSetting("show-hitboxes"));
+    });
+    KeybindSettingPressedEventV3(Mod::get(), "toggle-player-bounds").listen([](Keybind const&, bool down, bool repeat, double) {
+        if (!down || repeat) return;
+        Mod::get()->setSettingValue<bool>("player-bounds-enabled", toggleFrameGuardSetting("show-player-bounds"));
     });
 }
