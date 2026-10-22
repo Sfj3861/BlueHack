@@ -97,8 +97,8 @@ public:
     }
 
     void onClose(CCObject*) {
-        if (this->getParent()) this->removeFromParentAndCleanup(true);
         if (g_overlay == this) g_overlay = nullptr;
+        if (this->getParent()) this->removeFromParentAndCleanup(true);
     }
 
     void onSpeedhack(CCObject*) {
@@ -184,6 +184,13 @@ $modify(BlueHackMenuLayer, MenuLayer) {
     void onBlueHackPressed(CCObject*) {
         openBlueHack(CCDirector::sharedDirector()->getRunningScene());
     }
+
+    void onExit() {
+        // The overlay is a scene child and will be cleaned with the old scene.
+        // Clear the non-owning pointer before that happens.
+        g_overlay = nullptr;
+        MenuLayer::onExit();
+    }
 };
 
 $modify(BlueHackPlayLayer, PlayLayer) {
@@ -216,9 +223,11 @@ $on_mod(Loaded) {
         auto* scene = CCDirector::sharedDirector()->getRunningScene();
         if (!scene) return;
         if (g_overlay && g_overlay->getParent()) {
-            g_overlay->removeFromParentAndCleanup(true);
+            auto* oldOverlay = g_overlay;
             g_overlay = nullptr;
+            oldOverlay->removeFromParentAndCleanup(true);
         } else {
+            g_overlay = nullptr;
             openBlueHack(scene);
         }
     });
