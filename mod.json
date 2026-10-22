@@ -1,0 +1,12 @@
+{
+  "geode": "5.7.1",
+  "version": "v0.1.0",
+  "gd": { "android": "2.2081" },
+  "id": "sfj3861.bluehack",
+  "name": "BlueHack",
+  "developer": "Sfj3861",
+  "description": "An original, modular Geometry Dash utility menu.",
+  "early-load": false,
+  "tags": ["gameplay", "utility", "customization", "interface"],
+  "links": { "source": "https://github.com/Sfj3861/BlueHack" }
+}
