@@ -1,0 +1,30 @@
+name: Build BlueHack Android64
+
+on:
+  push:
+    branches: [feature/bluehack-0.1-foundation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build Geode mod using latest stable SDK
+        id: build
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          sdk: latest
+          target: Android64
+          path: .
+      - name: Upload .geode package
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlueHack-Android64
+          path: ${{ steps.build.outputs.build-output }}/*.geode
+          if-no-files-found: error
+          retention-days: 14
