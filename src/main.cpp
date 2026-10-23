@@ -5,19 +5,20 @@
 
 using namespace geode::prelude;
 
+class BlueHackOverlay;
+static BlueHackOverlay* g_overlay = nullptr;
+
 namespace {
     constexpr char kButtonID[] = "bluehack-open-button";
     constexpr float kSpeedhackScale = 1.5f;
-    class BlueHackOverlay;
-    static BlueHackOverlay* g_overlay = nullptr;
 
     bool isFrameGuardAvailable() {
         auto* mod = Loader::get()->getLoadedMod("sfj3861.frame-guard");
-        return mod && mod->isEnabled();
+        return mod != nullptr;
     }
 
     bool toggleFrameGuardSetting(char const* key) {
-        if (auto* mod = Loader::get()->getLoadedMod("sfj3861.frame-guard"); mod && mod->isEnabled()) {
+        if (auto* mod = Loader::get()->getLoadedMod("sfj3861.frame-guard"); mod) {
             bool value = !mod->getSettingValue<bool>(key);
             mod->setSettingValue<bool>(key, value);
             log::info("BlueHack: Frame-Guard setting '{}' set to {}", key, value);
@@ -230,7 +231,7 @@ $on_mod(Loaded) {
             g_overlay = nullptr;
             openBlueHack(scene);
         }
-    });
+    }).leak();
     KeybindSettingPressedEventV3(Mod::get(), "toggle-speedhack").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         bool enabled = !Mod::get()->getSettingValue<bool>("speedhack-enabled");
@@ -252,5 +253,5 @@ $on_mod(Loaded) {
     KeybindSettingPressedEventV3(Mod::get(), "toggle-player-bounds").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         Mod::get()->setSettingValue<bool>("player-bounds-enabled", toggleFrameGuardSetting("show-player-bounds"));
-    });
+    }).leak();
 }
