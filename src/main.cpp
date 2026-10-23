@@ -10,11 +10,11 @@ static BlueHackOverlay* g_overlay = nullptr;
 
 namespace {
     constexpr char kButtonID[] = "bluehack-open-button";
+    constexpr char kGameplayButtonID[] = "bluehack-gameplay-open-button";
     constexpr float kSpeedhackScale = 1.5f;
 
     bool isFrameGuardAvailable() {
-        auto* mod = Loader::get()->getLoadedMod("sfj3861.frame-guard");
-        return mod != nullptr;
+        return Loader::get()->getLoadedMod("sfj3861.frame-guard") != nullptr;
     }
 
     bool toggleFrameGuardSetting(char const* key) {
@@ -187,8 +187,6 @@ class $modify(BlueHackMenuLayer, MenuLayer) {
     }
 
     void onExit() {
-        // The overlay is a scene child and will be cleaned with the old scene.
-        // Clear the non-owning pointer before that happens.
         g_overlay = nullptr;
         MenuLayer::onExit();
     }
@@ -197,8 +195,33 @@ class $modify(BlueHackMenuLayer, MenuLayer) {
 class $modify(BlueHackPlayLayer, PlayLayer) {
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
+
+        // QOLMod-style mobile access: keep a small touch target available during gameplay,
+        // rather than requiring the player to return to the main menu.
+        auto win = CCDirector::sharedDirector()->getWinSize();
+        auto* label = CCLabelBMFont::create("BH", "bigFont.fnt");
+        auto* menu = CCMenu::create();
+        if (label && menu) {
+            label->setScale(0.48f);
+            auto* button = CCMenuItemLabel::create(
+                label, this, menu_selector(BlueHackPlayLayer::onBlueHackPressed)
+            );
+            if (button) {
+                button->setID(kGameplayButtonID);
+                button->setOpacity(190);
+                button->setPosition({ win.width - 28.f, win.height - 28.f });
+                menu->setPosition({ 0.f, 0.f });
+                menu->addChild(button);
+                this->addChild(menu, 10000);
+            }
+        }
+
         if (Mod::get()->getSettingValue<bool>("speedhack-enabled")) applySpeedhack(true);
         return true;
+    }
+
+    void onBlueHackPressed(CCObject*) {
+        openBlueHack(CCDirector::sharedDirector()->getRunningScene());
     }
 
     void destroyPlayer(PlayerObject* player, GameObject* object) {
