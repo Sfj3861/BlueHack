@@ -164,7 +164,7 @@ namespace {
     }
 }
 
-$modify(BlueHackMenuLayer, MenuLayer) {
+class $modify(BlueHackMenuLayer, MenuLayer) {
     bool init() {
         if (!MenuLayer::init()) return false;
         auto* bottomMenu = this->getChildByID("bottom-menu");
@@ -194,7 +194,7 @@ $modify(BlueHackMenuLayer, MenuLayer) {
     }
 };
 
-$modify(BlueHackPlayLayer, PlayLayer) {
+class $modify(BlueHackPlayLayer, PlayLayer) {
     bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
         if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
         if (Mod::get()->getSettingValue<bool>("speedhack-enabled")) applySpeedhack(true);
@@ -237,19 +237,19 @@ $on_mod(Loaded) {
         bool enabled = !Mod::get()->getSettingValue<bool>("speedhack-enabled");
         Mod::get()->setSettingValue<bool>("speedhack-enabled", enabled);
         applySpeedhack(enabled);
-    });
+    }).leak();
     KeybindSettingPressedEventV3(Mod::get(), "toggle-noclip").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         Mod::get()->setSettingValue<bool>("noclip-enabled", !Mod::get()->getSettingValue<bool>("noclip-enabled"));
-    });
+    }).leak();
     KeybindSettingPressedEventV3(Mod::get(), "toggle-trajectory").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         Mod::get()->setSettingValue<bool>("trajectory-enabled", toggleFrameGuardSetting("show-trajectory"));
-    });
+    }).leak();
     KeybindSettingPressedEventV3(Mod::get(), "toggle-hitboxes").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         Mod::get()->setSettingValue<bool>("hitboxes-enabled", toggleFrameGuardSetting("show-hitboxes"));
-    });
+    }).leak();
     KeybindSettingPressedEventV3(Mod::get(), "toggle-player-bounds").listen([](Keybind const&, bool down, bool repeat, double) {
         if (!down || repeat) return;
         Mod::get()->setSettingValue<bool>("player-bounds-enabled", toggleFrameGuardSetting("show-player-bounds"));
